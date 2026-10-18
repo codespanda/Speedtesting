@@ -5,8 +5,8 @@ import { addRun, detectNetwork, downsample, type SavedRun } from "@/lib/history"
 import { measureLatency, runDownload, runUpload, type Sample } from "@/lib/cloudflare"
 import type { Phase } from "@/lib/speed"
 
-/** Each direction runs for this long. */
-export const TEST_SECONDS = 10
+/** Each direction runs for this long. VITE_TEST_SECONDS lets the e2e tests use shorter phases. */
+export const TEST_SECONDS = Number(import.meta.env.VITE_TEST_SECONDS) || 10
 
 // Share of the progress bar given to each phase.
 const P_PING = 0.08

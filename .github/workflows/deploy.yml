@@ -1,21 +1,54 @@
-name: Deploy to GitHub Pages
+name: Test and deploy
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
-# Needed to push the built site to the gh-pages branch.
-permissions:
-  contents: write
-
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  deploy:
+  e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      # Cloudflare is mocked in the tests, so this needs no network access to speed.cloudflare.com.
+      - name: Run end-to-end tests
+        run: npx playwright test
+
+      - name: Upload test report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
+
+  deploy:
+    # Only ship from main, and only when the tests pass.
+    needs: e2e
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      # Needed to push the built site to the gh-pages branch.
+      contents: write
     steps:
       - uses: actions/checkout@v5
 
@@ -37,7 +70,6 @@ jobs:
           cp dist/index.html dist/404.html
           touch dist/.nojekyll
 
-      # Publishing to a gh-pages branch turns Pages on automatically the first time.
       - name: Publish to gh-pages
         working-directory: dist
         env:
