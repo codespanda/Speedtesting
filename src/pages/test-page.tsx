@@ -168,13 +168,13 @@ export function TestPage() {
 
       {/* Speed test panel */}
       <section aria-label="Speed test" className="overflow-hidden rounded-lg bg-card shadow-paper">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-[18px] sm:gap-2 sm:px-6">
+        <div className="grid grid-cols-4 items-start gap-y-2 border-b px-2 py-3 sm:flex sm:flex-wrap sm:items-center sm:gap-2 sm:px-6 sm:py-[18px]">
           {STEP_LABELS.map((label, i) => {
             const isDone = cur > i || (done && i === 3)
             const active = cur === i && !done
             return (
               <Fragment key={label}>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col items-center gap-1 sm:flex-row sm:gap-2">
                   <span
                     className={cn(
                       "inline-flex size-6 items-center justify-center rounded-full text-xs font-medium text-primary-foreground transition-colors",
@@ -183,7 +183,7 @@ export function TestPage() {
                   >
                     {isDone ? <CheckIcon className="size-3.5" strokeWidth={3} /> : i + 1}
                   </span>
-                  <span className={cn("text-sm", isDone || active ? "text-foreground" : "text-muted-foreground", active && "font-medium")}>
+                  <span className={cn("text-xs sm:text-sm", isDone || active ? "text-foreground" : "text-muted-foreground", active && "font-medium")}>
                     {label}
                   </span>
                 </div>
@@ -191,7 +191,12 @@ export function TestPage() {
               </Fragment>
             )
           })}
-          <span className="ml-auto font-mono text-[13px] text-muted-foreground">
+          <span
+            className={cn(
+              "col-span-4 text-center font-mono text-[13px] text-muted-foreground sm:ml-auto sm:text-right",
+              !running && "hidden sm:inline",
+            )}
+          >
             {running ? `~${Math.max(1, Math.round((1 - t.prog) * TOTAL_SECONDS))} s left` : ""}
           </span>
         </div>
@@ -199,9 +204,9 @@ export function TestPage() {
           <div className="h-1 bg-primary transition-[width] duration-200" style={{ width: `${t.prog * 100}%` }} />
         </div>
 
-        <div className="flex flex-wrap">
+        <div className="flex flex-col lg:flex-row">
           {/* Gauge */}
-          <div className="flex min-w-0 flex-[1_1_300px] flex-col items-center gap-4 border-b p-4 sm:border-r sm:border-b-0 sm:p-6">
+          <div className="flex min-w-0 flex-col items-center gap-4 border-b p-4 sm:p-6 lg:w-[40%] lg:flex-none lg:border-r lg:border-b-0">
             <div className="flex items-center justify-between self-stretch">
               <span className="text-xs font-medium tracking-[1px] text-muted-foreground uppercase">{bigLabel}</span>
               <span className="inline-flex h-8 max-w-[60%] items-center gap-1.5 rounded-full bg-primary-soft px-2.5 text-[13px] font-medium text-primary">
@@ -260,7 +265,7 @@ export function TestPage() {
           </div>
 
           {/* Chart */}
-          <div className="flex min-w-0 flex-[2_1_420px] flex-col gap-3 p-4 sm:p-6">
+          <div className="flex min-w-0 flex-1 flex-col gap-3 p-4 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-medium">Throughput over time</h2>
               <div className="flex gap-2">
@@ -292,7 +297,7 @@ export function TestPage() {
       </section>
 
       {/* Metric cards */}
-      <section aria-label="Results" className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
+      <section aria-label="Results" className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {cards.map((c) => (
           <StatCard
             key={c.key}
@@ -313,15 +318,15 @@ export function TestPage() {
         <section aria-label="What this means" className="min-w-0 flex-[3_1_440px] rounded-lg bg-card shadow-paper">
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
             <h2 className="text-lg font-medium">What your connection can handle</h2>
-            <label className="flex items-center gap-3 text-sm text-muted-foreground">
-              <span>Devices at home</span>
+            <label className="flex w-full items-center gap-3 text-sm text-muted-foreground sm:w-auto">
+              <span className="whitespace-nowrap">Devices at home</span>
               <Slider
                 min={1}
                 max={8}
                 step={1}
                 value={[devices]}
                 onValueChange={([v]) => setDevices(v)}
-                className="w-[140px]"
+                className="flex-auto sm:w-[140px] sm:flex-none"
                 aria-label="Devices at home"
               />
               <span className="min-w-5 font-mono font-medium text-foreground">{devices}</span>
@@ -335,14 +340,21 @@ export function TestPage() {
               <div className="min-w-0 flex-auto">
                 <div className="text-[15px]">{u.label}</div>
                 <div className="text-[13px] text-muted-foreground">{u.need}</div>
+                {/* Phones: the bar sits under the text so the label keeps the full width. */}
+                <div className="mt-2 h-1.5 w-full rounded-full bg-track sm:hidden">
+                  <div
+                    className="h-1.5 rounded-full transition-[width] duration-600 ease-out"
+                    style={{ width: `${u.pct}%`, background: u.bar }}
+                  />
+                </div>
               </div>
-              <div className="h-1.5 w-12 flex-none rounded-full bg-track sm:w-[140px]">
+              <div className="hidden h-1.5 w-[140px] flex-none rounded-full bg-track sm:block">
                 <div
                   className="h-1.5 rounded-full transition-[width] duration-600 ease-out"
                   style={{ width: `${u.pct}%`, background: u.bar }}
                 />
               </div>
-              <span className={cn("w-[84px] flex-none text-right text-[13px] font-medium sm:w-[100px]", u.text)}>{u.verdict}</span>
+              <span className={cn("flex-none text-right text-[13px] font-medium sm:w-[100px]", u.text)}>{u.verdict}</span>
             </div>
           ))}
         </section>
@@ -350,7 +362,7 @@ export function TestPage() {
         <div className="flex flex-[2_1_300px] flex-col gap-6">
           {/* Your connection */}
           <section aria-label="Your connection" className="rounded-lg bg-card shadow-paper">
-            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+            <div className="flex items-center justify-between px-4 pt-4 pb-2 sm:px-5">
               <h2 className="text-lg font-medium">Your connection</h2>
               <Button
                 variant="ghost"
@@ -361,7 +373,7 @@ export function TestPage() {
                 Refresh
               </Button>
             </div>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 px-5 pb-3 text-sm">
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 px-4 pb-3 text-sm sm:px-5">
               {(
                 [
                   ["Provider", ipValue(meta?.provider), false],
@@ -372,7 +384,7 @@ export function TestPage() {
               ).map(([k, v, mono]) => (
                 <Fragment key={k}>
                   <dt className="border-t border-line2 py-2.5 text-muted-foreground">{k}</dt>
-                  <dd className={cn("min-w-0 border-t border-line2 py-2.5 text-right break-words", mono && "font-mono")}>{v}</dd>
+                  <dd className={cn("min-w-0 border-t border-line2 py-2.5 text-right break-words", mono && "font-mono text-xs break-all sm:text-sm")}>{v}</dd>
                 </Fragment>
               ))}
             </dl>
@@ -380,9 +392,9 @@ export function TestPage() {
 
           {/* Recent runs */}
           <section aria-label="Recent runs" className="overflow-hidden rounded-lg bg-card shadow-paper">
-            <div className="flex items-baseline justify-between px-5 pt-4 pb-2">
+            <div className="flex items-baseline justify-between gap-2 px-4 pt-4 pb-2 sm:px-5">
               <h2 className="text-lg font-medium">Recent runs</h2>
-              <span className="text-xs text-muted-foreground">Click a run to view it</span>
+              <span className="text-xs text-muted-foreground">Select a run to view it</span>
             </div>
             {history.length === 0 && (
               <div className="border-t border-line2 px-5 py-4 text-sm text-muted-foreground">Your tests will appear here.</div>
@@ -394,16 +406,16 @@ export function TestPage() {
                 onClick={() => !running && t.loadRun(r)}
                 aria-pressed={t.activeRun === r.id}
                 className={cn(
-                  "flex w-full items-center gap-3 border-t border-line2 px-5 py-3 text-left text-sm transition-colors hover:bg-hover",
+                  "flex w-full items-center gap-2 border-t border-line2 px-4 py-3 text-left text-sm transition-colors hover:bg-hover sm:gap-3 sm:px-5",
                   t.activeRun === r.id && "bg-primary-soft hover:bg-primary-soft",
                 )}
               >
-                <span className="w-[52px] font-mono text-[13px] text-muted-foreground">{formatTime(r.at)}</span>
-                <span className="flex-auto font-mono">
+                <span className="w-[44px] flex-none font-mono text-[13px] text-muted-foreground sm:w-[52px]">{formatTime(r.at)}</span>
+                <span className="min-w-0 flex-auto font-mono whitespace-nowrap">
                   <span className="text-dl-ink">{r.dl.toFixed(1)}</span> / <span className="text-ul-ink">{r.ul.toFixed(1)}</span>{" "}
-                  <span className="font-sans text-xs text-muted-foreground">Mbps</span>
+                  <span className="hidden font-sans text-xs text-muted-foreground min-[360px]:inline">Mbps</span>
                 </span>
-                <span className="truncate text-[13px] text-muted-foreground">{r.serverPlace.split(",")[0]}</span>
+                <span className="max-w-[35%] truncate text-[13px] text-muted-foreground">{r.serverPlace.split(",")[0]}</span>
               </button>
             ))}
           </section>

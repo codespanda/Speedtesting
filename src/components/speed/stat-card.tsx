@@ -17,7 +17,7 @@ type Props = {
 /** Metric tile with a tinted round icon. Renders as a toggle button when onClick is set. */
 export function StatCard({ label, value, unit, extra, icon, tone, pressed, onClick, className }: Props) {
   const classes = cn(
-    "flex items-center gap-4 rounded-lg border-2 border-transparent bg-card p-4 text-left text-card-foreground shadow-paper",
+    "flex min-w-0 flex-col items-start gap-2 rounded-lg border-2 border-transparent bg-card p-3 text-left text-card-foreground shadow-paper sm:flex-row sm:items-center sm:gap-4 sm:p-4",
     onClick &&
       "transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
     pressed && "border-primary",
@@ -25,16 +25,16 @@ export function StatCard({ label, value, unit, extra, icon, tone, pressed, onCli
   )
   const content = (
     <>
-      <span className={cn("flex size-12 flex-none items-center justify-center rounded-full", tone)}>
+      <span className={cn("flex size-9 flex-none items-center justify-center rounded-full sm:size-12 [&_svg]:size-5 sm:[&_svg]:size-6", tone)}>
         <PathIcon d={icon} />
       </span>
-      <span className="flex min-w-0 flex-col">
+      <span className="flex w-full min-w-0 flex-col">
         <span className="text-sm text-muted-foreground">{label}</span>
         <span className="flex items-baseline gap-1">
-          <span className="font-mono text-[28px] leading-tight">{value}</span>
+          <span className="font-mono text-[22px] leading-tight sm:text-[28px]">{value}</span>
           <span className="text-sm text-muted-foreground">{unit}</span>
         </span>
-        {extra && <span className="text-xs text-muted-foreground">{extra}</span>}
+        {extra && <span className="truncate text-xs text-muted-foreground">{extra}</span>}
       </span>
     </>
   )
