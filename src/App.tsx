@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom"
 
 import { AppFooter, AppHeader } from "@/components/app-header"
+import { usePageMeta } from "@/hooks/use-page-meta"
 import { HelpPage } from "@/pages/help-page"
 import { MethodologyPage } from "@/pages/methodology-page"
 import { MobileResultPage } from "@/pages/mobile-result-page"
@@ -20,6 +21,7 @@ function Layout() {
 }
 
 export default function App() {
+  usePageMeta()
   return (
     <Routes>
       <Route element={<Layout />}>

@@ -2,12 +2,47 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pulse speed test</title>
+    <!-- Title, description, robots and URLs below are filled in per page by the seo plugin in vite.config.ts. -->
+    <title>{{PAGE_TITLE}}</title>
+    <meta name="description" content="{{PAGE_DESCRIPTION}}" />
+    <meta name="robots" content="{{PAGE_ROBOTS}}" />
+    <link rel="canonical" href="{{PAGE_URL}}" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Pulse" />
+    <meta property="og:title" content="{{PAGE_TITLE}}" />
+    <meta property="og:description" content="{{PAGE_DESCRIPTION}}" />
+    <meta property="og:url" content="{{PAGE_URL}}" />
+    <meta property="og:image" content="{{SITE_URL}}/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Pulse internet speed test: download, upload, latency and jitter" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="theme-color" content="#1976d2" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#272727" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Pulse",
+        "url": "{{SITE_URL}}/",
+        "description": "Free internet speed test that measures download, upload, latency and jitter against your nearest Cloudflare server.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>Pulse needs JavaScript to run a speed test in your browser.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

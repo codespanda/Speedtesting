@@ -71,12 +71,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      # GitHub Pages has no SPA fallback; serving index.html as 404.html lets deep links like /privacy load.
+      # The build writes an HTML file per page plus 404.html (see the seo plugin in vite.config.ts).
       # .nojekyll stops Pages from running Jekyll over the built files.
       - name: Prepare site
-        run: |
-          cp dist/index.html dist/404.html
-          touch dist/.nojekyll
+        run: touch dist/.nojekyll
 
       - name: Publish to gh-pages
         working-directory: dist

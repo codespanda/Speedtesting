@@ -51,6 +51,7 @@ export function MobileResultPage() {
       <header className="flex h-14 flex-none items-center gap-3 bg-appbar pr-1 pl-4 text-white shadow-appbar">
         <PathIcon d={ICONS.pulse} strokeWidth={2.2} />
         <span className="flex-auto text-xl font-medium">Pulse</span>
+        <h1 className="sr-only">Your latest speed test result</h1>
         <Button
           variant="ghost"
           size="icon"
