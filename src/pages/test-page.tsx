@@ -151,7 +151,7 @@ export function TestPage() {
       {/* Title row */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-[34px] font-normal tracking-[0.25px]">Check your connection</h1>
+          <h1 className="text-[28px] font-normal tracking-[0.25px] sm:text-[34px]">Check your connection</h1>
           <p className="mt-1.5 text-base text-muted-foreground">
             Measures latency, download and upload against the nearest Cloudflare server.
           </p>
@@ -168,7 +168,7 @@ export function TestPage() {
 
       {/* Speed test panel */}
       <section aria-label="Speed test" className="overflow-hidden rounded-lg bg-card shadow-paper">
-        <div className="flex flex-wrap items-center gap-2 border-b px-6 py-[18px]">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b px-4 py-[18px] sm:gap-2 sm:px-6">
           {STEP_LABELS.map((label, i) => {
             const isDone = cur > i || (done && i === 3)
             const active = cur === i && !done
@@ -187,7 +187,7 @@ export function TestPage() {
                     {label}
                   </span>
                 </div>
-                {i < 3 && <span className="mx-1 h-px w-10 bg-border" />}
+                {i < 3 && <span className="mx-1 hidden h-px w-10 bg-border sm:block" />}
               </Fragment>
             )
           })}
@@ -201,7 +201,7 @@ export function TestPage() {
 
         <div className="flex flex-wrap">
           {/* Gauge */}
-          <div className="flex flex-[1_1_360px] flex-col items-center gap-4 border-r p-6">
+          <div className="flex min-w-0 flex-[1_1_300px] flex-col items-center gap-4 border-b p-4 sm:border-r sm:border-b-0 sm:p-6">
             <div className="flex items-center justify-between self-stretch">
               <span className="text-xs font-medium tracking-[1px] text-muted-foreground uppercase">{bigLabel}</span>
               <span className="inline-flex h-8 max-w-[60%] items-center gap-1.5 rounded-full bg-primary-soft px-2.5 text-[13px] font-medium text-primary">
@@ -260,7 +260,7 @@ export function TestPage() {
           </div>
 
           {/* Chart */}
-          <div className="flex min-w-0 flex-[2_1_480px] flex-col gap-3 p-6">
+          <div className="flex min-w-0 flex-[2_1_420px] flex-col gap-3 p-4 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 className="text-base font-medium">Throughput over time</h2>
               <div className="flex gap-2">
@@ -310,8 +310,8 @@ export function TestPage() {
 
       <div className="flex flex-wrap items-start gap-6">
         {/* What your connection can handle */}
-        <section aria-label="What this means" className="flex-[3_1_440px] rounded-lg bg-card shadow-paper">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+        <section aria-label="What this means" className="min-w-0 flex-[3_1_440px] rounded-lg bg-card shadow-paper">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-5">
             <h2 className="text-lg font-medium">What your connection can handle</h2>
             <label className="flex items-center gap-3 text-sm text-muted-foreground">
               <span>Devices at home</span>
@@ -328,7 +328,7 @@ export function TestPage() {
             </label>
           </div>
           {uses.map((u) => (
-            <div key={u.label} className="flex items-center gap-4 border-t border-line2 px-5 py-3">
+            <div key={u.label} className="flex items-center gap-3 border-t border-line2 px-4 py-3 sm:gap-4 sm:px-5">
               <span className="flex size-9 flex-none items-center justify-center rounded-full bg-primary-soft text-primary">
                 <PathIcon d={u.icon} size={18} />
               </span>
@@ -336,13 +336,13 @@ export function TestPage() {
                 <div className="text-[15px]">{u.label}</div>
                 <div className="text-[13px] text-muted-foreground">{u.need}</div>
               </div>
-              <div className="h-1.5 w-[140px] flex-none rounded-full bg-track">
+              <div className="h-1.5 w-12 flex-none rounded-full bg-track sm:w-[140px]">
                 <div
                   className="h-1.5 rounded-full transition-[width] duration-600 ease-out"
                   style={{ width: `${u.pct}%`, background: u.bar }}
                 />
               </div>
-              <span className={cn("w-[100px] text-right text-[13px] font-medium", u.text)}>{u.verdict}</span>
+              <span className={cn("w-[84px] flex-none text-right text-[13px] font-medium sm:w-[100px]", u.text)}>{u.verdict}</span>
             </div>
           ))}
         </section>

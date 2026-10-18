@@ -19,7 +19,7 @@ export function AppHeader() {
 
   return (
     <header className="bg-appbar text-white shadow-appbar">
-      <div className="mx-auto flex min-h-16 max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-2 px-6">
+      <div className="mx-auto flex min-h-16 max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-2 px-4 sm:px-6">
         <Link to="/" className="mr-4 flex items-center gap-2.5 text-white no-underline">
           <PathIcon d={ICONS.pulse} size={26} strokeWidth={2.2} />
           <span className="text-xl font-medium tracking-[0.15px]">Pulse</span>
@@ -44,7 +44,7 @@ export function AppHeader() {
 export function AppFooter() {
   return (
     <footer className="border-t bg-card" aria-label="Site">
-      <div className="mx-auto flex max-w-[1200px] flex-wrap gap-x-6 gap-y-2 px-6 py-5 text-[13px] text-muted-foreground">
+      <div className="mx-auto flex max-w-[1200px] flex-wrap gap-x-6 gap-y-2 px-4 py-5 sm:px-6 text-[13px] text-muted-foreground">
         <span>© Pulse</span>
         {FOOTER_LINKS.map((n) => (
           <Link key={n.to} to={n.to} className="text-primary no-underline hover:underline">

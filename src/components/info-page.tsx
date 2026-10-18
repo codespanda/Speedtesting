@@ -8,7 +8,7 @@ export function InfoPage({ title, intro, children }: { title: string; intro: str
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-[34px] font-normal tracking-[0.25px]">{title}</h1>
+        <h1 className="text-[28px] font-normal tracking-[0.25px] sm:text-[34px]">{title}</h1>
         <p className="mt-1.5 max-w-[720px] text-base text-muted-foreground">{intro}</p>
       </div>
       {children}

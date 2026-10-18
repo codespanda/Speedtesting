@@ -11,7 +11,7 @@ function Layout() {
   return (
     <div className="flex min-h-svh flex-col">
       <AppHeader />
-      <main className="mx-auto box-border flex w-full max-w-[1200px] flex-auto flex-col px-6 pt-8 pb-12">
+      <main className="mx-auto box-border flex w-full max-w-[1200px] flex-auto flex-col px-4 pt-6 pb-10 sm:px-6 sm:pt-8 sm:pb-12">
         <Outlet />
       </main>
       <AppFooter />

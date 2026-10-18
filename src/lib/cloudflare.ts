@@ -77,25 +77,37 @@ const STREAMS = 4
 const WARMUP_S = 1.5
 const SAMPLE_MS = 250
 
+/** A run fails only if this many requests error before any data gets through. */
+const MAX_FAILURES = 8
+/** How long in-flight uploads may keep going after time is up, so their bytes still count. */
+const DRAIN_MS = 3000
+
+type Pump = (addBytes: (n: number) => void, signal: AbortSignal, stream: number) => Promise<void>
+
 /**
- * Drives a timed transfer. `pump(addBytes, signal)` runs one connection and resolves when its
- * request finishes; it is restarted until time is up. Returns the steady-state speed in Mbps.
+ * Drives a timed transfer over STREAMS parallel connections. `pump` runs one request and resolves
+ * when it finishes; each connection keeps restarting it until time is up. A single failed request
+ * is retried rather than failing the whole test. With `drain`, requests already in flight when
+ * time runs out are allowed to finish (up to DRAIN_MS) instead of being cut off.
+ * Returns the steady-state speed in Mbps.
  */
-async function timedTransfer(
-  pump: (addBytes: (n: number) => void, signal: AbortSignal) => Promise<void>,
-  { seconds, onSample, signal }: RunOptions,
-): Promise<number> {
+async function timedTransfer(pump: Pump, { seconds, onSample, signal }: RunOptions, drain = false): Promise<number> {
   const ctrl = new AbortController()
-  const stop = () => ctrl.abort()
-  signal.addEventListener("abort", stop)
+  const abortAll = () => ctrl.abort()
+  signal.addEventListener("abort", abortAll)
 
   const start = performance.now()
   let total = 0
+  let lastByteAt = start
   let warmBytes = 0
   let warmAt = 0
+  let stopping = false
+  let failures = 0
+  let drainTimer: number | undefined
   const history: { t: number; bytes: number }[] = [{ t: 0, bytes: 0 }]
   const addBytes = (n: number) => {
     total += n
+    lastByteAt = performance.now()
   }
 
   const ticker = window.setInterval(() => {
@@ -105,37 +117,47 @@ async function timedTransfer(
       warmAt = t
       warmBytes = total
     }
-    // Live value: average over the last second, so the readout is responsive but not jumpy.
-    const from = history.find((h) => h.t >= t - 1) ?? history[0]
-    const dt = t - from.t
-    if (dt > 0) onSample({ t, mbps: ((total - from.bytes) * 8) / dt / 1e6 })
-    if (t >= seconds) stop()
+    if (t <= seconds) {
+      // Live value: average over the last second, so the readout is responsive but not jumpy.
+      const from = history.find((h) => h.t >= t - 1) ?? history[0]
+      const dt = t - from.t
+      if (dt > 0) onSample({ t, mbps: ((total - from.bytes) * 8) / dt / 1e6 })
+    }
+    if (t >= seconds && !stopping) {
+      stopping = true
+      if (drain) drainTimer = window.setTimeout(abortAll, DRAIN_MS)
+      else abortAll()
+    }
   }, SAMPLE_MS)
 
-  const worker = async () => {
-    while (!ctrl.signal.aborted) {
+  const worker = async (stream: number) => {
+    while (!stopping && !ctrl.signal.aborted) {
       try {
-        await pump(addBytes, ctrl.signal)
+        await pump(addBytes, ctrl.signal, stream)
       } catch (e) {
         if (ctrl.signal.aborted) return
-        throw e
+        // Retry transient failures; give up only if nothing is getting through at all.
+        if (++failures >= MAX_FAILURES && total === 0) throw e
+        await new Promise((r) => setTimeout(r, 200))
       }
     }
   }
 
   try {
-    await Promise.all(Array.from({ length: STREAMS }, worker))
+    await Promise.all(Array.from({ length: STREAMS }, (_, i) => worker(i)))
   } catch (e) {
-    stop()
+    abortAll()
     throw e
   } finally {
     window.clearInterval(ticker)
-    signal.removeEventListener("abort", stop)
+    window.clearTimeout(drainTimer)
+    signal.removeEventListener("abort", abortAll)
   }
   if (signal.aborted) throw new DOMException("Test cancelled", "AbortError")
 
-  const elapsed = (performance.now() - start) / 1000
-  if (warmAt && elapsed > warmAt) return ((total - warmBytes) * 8) / (elapsed - warmAt) / 1e6
+  // With draining, the run ends when the last bytes arrived, not when the clock hit `seconds`.
+  const elapsed = ((drain ? lastByteAt : performance.now()) - start) / 1000
+  if (warmAt && elapsed > warmAt && total > warmBytes) return ((total - warmBytes) * 8) / (elapsed - warmAt) / 1e6
   return elapsed > 0 ? (total * 8) / elapsed / 1e6 : 0
 }
 
@@ -158,35 +180,38 @@ export function runDownload(opts: RunOptions) {
   }, opts)
 }
 
-const UP_CHUNK = 4_000_000
+const UP_MIN = 64 * 1024
+const UP_START = 256 * 1024
+const UP_MAX = 8 * 1024 * 1024
 let upPayload: Blob | null = null
 
-/** Uses XMLHttpRequest because fetch cannot report upload progress. */
+/**
+ * Uploads with plain fetch POSTs. A Blob body with no type sends no Content-Type, so these stay
+ * "simple" CORS requests with no preflight (XMLHttpRequest progress listeners force one, which
+ * Safari rejected). Bytes are counted when each request completes, so chunk sizes adapt per
+ * connection: they double while requests finish quickly and halve when they get slow.
+ */
 export function runUpload(opts: RunOptions) {
-  upPayload ??= new Blob([new Uint8Array(UP_CHUNK)])
+  upPayload ??= new Blob([new Uint8Array(UP_MAX)])
   const payload = upPayload
+  const sizes = Array.from({ length: STREAMS }, () => UP_START)
   return timedTransfer(
-    (addBytes, signal) =>
-      new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest()
-        let sent = 0
-        xhr.upload.onprogress = (e) => {
-          addBytes(e.loaded - sent)
-          sent = e.loaded
-        }
-        xhr.onload = () => {
-          addBytes(UP_CHUNK - sent)
-          if (xhr.status >= 200 && xhr.status < 300) resolve()
-          else reject(new Error(`Upload failed (${xhr.status})`))
-        }
-        xhr.onerror = () => reject(new Error("Upload failed: network error"))
-        xhr.onabort = () => resolve()
-        signal.addEventListener("abort", () => xhr.abort(), { once: true })
-        xhr.open("POST", `${BASE}/__up?r=${Math.random()}`)
-        // text/plain keeps this a "simple" request, so no CORS preflight per chunk.
-        xhr.setRequestHeader("Content-Type", "text/plain;charset=UTF-8")
-        xhr.send(payload)
-      }),
+    async (addBytes, signal, stream) => {
+      const size = sizes[stream]
+      const t0 = performance.now()
+      const res = await fetch(`${BASE}/__up?r=${Math.random()}`, {
+        method: "POST",
+        body: payload.slice(0, size),
+        signal,
+      })
+      await res.arrayBuffer()
+      if (!res.ok) throw new Error(`Upload failed (${res.status})`)
+      addBytes(size)
+      const ms = performance.now() - t0
+      if (ms < 300) sizes[stream] = Math.min(size * 2, UP_MAX)
+      else if (ms > 1500) sizes[stream] = Math.max(size / 2, UP_MIN)
+    },
     opts,
+    true,
   )
 }
