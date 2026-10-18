@@ -26,11 +26,9 @@ jobs:
 
       - run: npm ci
 
+      # The site is served from the custom domain in public/CNAME, so it lives at the root ("/").
       - name: Build
         run: npm run build
-        env:
-          # Project sites live at https://<user>.github.io/<repo>/
-          BASE_PATH: /${{ github.event.repository.name }}/
 
       # GitHub Pages has no SPA fallback; serving index.html as 404.html lets deep links like /privacy load.
       # .nojekyll stops Pages from running Jekyll over the built files.

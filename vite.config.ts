@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  // GitHub Pages serves the site from /<repo-name>/; the deploy workflow sets BASE_PATH.
+  // Served from the root of the custom domain (public/CNAME). Set BASE_PATH=/<repo>/ to host under <user>.github.io/<repo>/ instead.
   base: process.env.BASE_PATH ?? '/',
   plugins: [react(), tailwindcss()],
   resolve: {
