@@ -84,13 +84,25 @@ export async function mockCloudflare(page: Page, opts: MockOptions = {}): Promis
   return { requests, preflights: () => requests.filter((r) => r.startsWith("OPTIONS")).length }
 }
 
-type Fixtures = { cloudflare: CloudflareMock }
+type Fixtures = { cloudflare: CloudflareMock; cspViolations: string[] }
 
 /** `test` with Cloudflare mocked. Each test gets a fresh browser context, so storage starts empty. */
 export const test = base.extend<Fixtures>({
   cloudflare: [
     async ({ page }, use) => {
       await use(await mockCloudflare(page))
+    },
+    { auto: true },
+  ],
+  // Any Content-Security-Policy violation fails the test, so a policy change can't silently break the site.
+  cspViolations: [
+    async ({ page }, use) => {
+      const violations: string[] = []
+      page.on("console", (msg) => {
+        if (/content security policy|content-security-policy/i.test(msg.text())) violations.push(msg.text())
+      })
+      await use(violations)
+      expect(violations, "Content-Security-Policy violations").toEqual([])
     },
     { auto: true },
   ],

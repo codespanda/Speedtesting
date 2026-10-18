@@ -17,9 +17,12 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          # Neither job needs the token saved in git config; deploy passes its own when pushing.
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 24
           cache: npm
@@ -29,13 +32,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium webkit
 
-      # Cloudflare is mocked in the tests, so this needs no network access to speed.cloudflare.com.
+      # Tests the production build (with its Content-Security-Policy). Cloudflare is mocked,
+      # so this needs no network access to speed.cloudflare.com.
       - name: Run end-to-end tests
-        run: npx playwright test
+        run: npm run test:e2e:prod
 
       - name: Upload test report
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report
           path: playwright-report/
@@ -50,14 +54,18 @@ jobs:
       # Needed to push the built site to the gh-pages branch.
       contents: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          # Neither job needs the token saved in git config; deploy passes its own when pushing.
+          persist-credentials: false
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      # No package install scripts in the job that holds a write token.
+      - run: npm ci --ignore-scripts
 
       # The site is served from the custom domain in public/CNAME, so it lives at the root ("/").
       - name: Build

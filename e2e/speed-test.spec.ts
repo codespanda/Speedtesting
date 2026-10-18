@@ -83,3 +83,20 @@ test.describe("speed test", () => {
     await expect(usage).not.toContainText("each on")
   })
 })
+
+test("survives corrupted saved history", async ({ page }) => {
+  await page.addInitScript(() => {
+    // Old formats, wrong types and junk must be skipped, not crash the page.
+    localStorage.setItem(
+      "pulse-history",
+      JSON.stringify([{ id: "bad", dl: "fast" }, null, 42, { id: "x", at: "not a date" }]),
+    )
+  })
+  await page.goto("/")
+  await expect(page.getByRole("heading", { name: "Check your connection" })).toBeVisible()
+  await expect(page.getByRole("region", { name: "Recent runs" })).toContainText("Your tests will appear here")
+
+  await page.addInitScript(() => localStorage.setItem("pulse-history", "{not json"))
+  await page.goto("/result")
+  await expect(page.getByText("No results yet")).toBeVisible()
+})

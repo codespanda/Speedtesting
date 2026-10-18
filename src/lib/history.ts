@@ -26,10 +26,29 @@ const MAX_RUNS = 100
 const listeners = new Set<() => void>()
 let cache: SavedRun[] | null = null
 
+const NETWORKS: readonly string[] = ["Wi‑Fi", "Ethernet", "Mobile", "Unknown"]
+const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v)
+const isStr = (v: unknown): v is string => typeof v === "string"
+const isSamples = (v: unknown): v is Sample[] =>
+  Array.isArray(v) && v.every((s) => s && typeof s === "object" && isNum(s.t) && isNum(s.mbps))
+
+/** Storage can hold anything (old formats, manual edits), so keep only well-formed runs. */
+function isRun(v: unknown): v is SavedRun {
+  if (!v || typeof v !== "object") return false
+  const r = v as Record<string, unknown>
+  return (
+    isStr(r.id) && isStr(r.at) && !Number.isNaN(Date.parse(r.at)) &&
+    isNum(r.dl) && isNum(r.ul) && isNum(r.ping) && isNum(r.jitter) &&
+    isStr(r.serverName) && isStr(r.serverPlace) && isStr(r.provider) &&
+    isStr(r.network) && NETWORKS.includes(r.network) && isSamples(r.dlS) && isSamples(r.ulS)
+  )
+}
+
 function read(): SavedRun[] {
   if (cache) return cache
   try {
-    cache = JSON.parse(localStorage.getItem(KEY) ?? "[]") as SavedRun[]
+    const parsed: unknown = JSON.parse(localStorage.getItem(KEY) ?? "[]")
+    cache = Array.isArray(parsed) ? parsed.filter(isRun).slice(0, MAX_RUNS) : []
   } catch {
     cache = []
   }

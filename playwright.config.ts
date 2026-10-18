@@ -23,7 +23,7 @@ export default defineConfig({
     command: `npm run dev -- --port ${PORT} --strictPort`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
+    timeout: 120_000,
     // Shorter download/upload phases keep each full test run to a few seconds.
     env: { VITE_TEST_SECONDS: "2" },
   },
