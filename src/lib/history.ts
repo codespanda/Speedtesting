@@ -67,6 +67,17 @@ function write(runs: SavedRun[]) {
 
 export const addRun = (run: SavedRun) => write([run, ...read()].slice(0, MAX_RUNS))
 
+/** Deletes every saved run from this browser. */
+export function clearHistory() {
+  try {
+    localStorage.removeItem(KEY)
+  } catch {
+    // storage blocked; the in-memory copy is still cleared
+  }
+  cache = []
+  listeners.forEach((l) => l())
+}
+
 export function useHistory() {
   return useSyncExternalStore(
     (cb) => {

@@ -43,16 +43,23 @@ test.describe("speed test", () => {
     const recent = page.getByRole("region", { name: "Recent runs" })
     await expect(recent).toContainText("Your tests will appear here")
 
+    const runs = recent.getByRole("button").filter({ hasNotText: "Clear history" })
     await runTest(page)
-    await expect(recent.getByRole("button")).toHaveCount(1)
+    await expect(runs).toHaveCount(1)
 
     await page.reload()
-    await expect(recent.getByRole("button")).toHaveCount(1)
+    await expect(runs).toHaveCount(1)
     await expect(recent).toContainText("Mockcity")
 
     // Selecting a saved run shows its result again.
-    await recent.getByRole("button").first().click()
+    await runs.first().click()
     await expect(page.getByText("Result", { exact: true })).toBeVisible()
+
+    // Clear history deletes saved runs, including after a reload.
+    await recent.getByRole("button", { name: "Clear history" }).click()
+    await expect(recent).toContainText("Your tests will appear here")
+    await page.reload()
+    await expect(recent.getByRole("button")).toHaveCount(0)
   })
 
   test("Stop cancels a running test", async ({ page }) => {

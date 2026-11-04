@@ -4,12 +4,13 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 
 /** Shared layout for the text pages (Methodology, Privacy, Help). */
-export function InfoPage({ title, intro, children }: { title: string; intro: string; children: ReactNode }) {
+export function InfoPage({ title, intro, updated, children }: { title: string; intro: string; updated?: string; children: ReactNode }) {
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-[28px] font-normal tracking-[0.25px] sm:text-[34px]">{title}</h1>
         <p className="mt-1.5 max-w-[720px] text-base text-muted-foreground">{intro}</p>
+        {updated && <p className="mt-1 text-xs text-muted-foreground">Last updated {updated}</p>}
       </div>
       {children}
       <div>

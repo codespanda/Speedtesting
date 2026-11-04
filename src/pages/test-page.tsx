@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { useConnection } from "@/hooks/use-connection"
 import { TEST_SECONDS, useSpeedTest } from "@/hooks/use-speed-test"
-import { formatTime, useHistory } from "@/lib/history"
+import { clearHistory, formatTime, useHistory } from "@/lib/history"
 import type { Sample } from "@/lib/cloudflare"
 import { cn } from "@/lib/utils"
 import { countryName, fmt, GAUGE_STEPS, ICONS, niceMax } from "@/lib/speed"
@@ -394,7 +394,22 @@ export function TestPage() {
           <section aria-label="Recent runs" className="overflow-hidden rounded-lg bg-card shadow-paper">
             <div className="flex items-baseline justify-between gap-2 px-4 pt-4 pb-2 sm:px-5">
               <h2 className="text-lg font-medium">Recent runs</h2>
-              <span className="text-xs text-muted-foreground">Select a run to view it</span>
+              {history.length > 0 && (
+                <span className="flex items-baseline gap-3 text-xs text-muted-foreground">
+                  <span className="hidden min-[420px]:inline">Select a run to view it</span>
+                  <button
+                    type="button"
+                    disabled={running}
+                    onClick={() => {
+                      clearHistory()
+                      toast("History cleared from this browser")
+                    }}
+                    className="text-primary hover:underline disabled:opacity-50"
+                  >
+                    Clear history
+                  </button>
+                </span>
+              )}
             </div>
             {history.length === 0 && (
               <div className="border-t border-line2 px-5 py-4 text-sm text-muted-foreground">Your tests will appear here.</div>
